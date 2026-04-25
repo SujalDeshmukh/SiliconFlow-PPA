@@ -1,27 +1,43 @@
-# Copyright (c) Meta Platforms, Inc. and affiliates.
-# All rights reserved.
-#
-# This source code is licensed under the BSD-style license found in the
-# LICENSE file in the root directory of this source tree.
+from typing import Dict, List, Literal, TypedDict
 
-"""
-Data models for the Siliconflow Ppa Environment.
-
-The siliconflow_ppa environment is a simple test environment that echoes back messages.
-"""
-
-from openenv.core.env_server.types import Action, Observation
-from pydantic import Field
+from pydantic import BaseModel, Field
 
 
-class SiliconflowPpaAction(Action):
-    """Action for the Siliconflow Ppa environment - just a message to echo."""
+class UnplacedBlock(TypedDict):
+    id: str
+    w: int
+    h: int
+    p: float
 
-    message: str = Field(..., description="Message to echo back")
+
+class PlacedBlock(TypedDict):
+    x: int
+    y: int
+    orientation: Literal[0, 90, 180, 270]
 
 
-class SiliconflowPpaObservation(Observation):
-    """Observation from the Siliconflow Ppa environment - the echoed message."""
+class Action(BaseModel):
+    block_id: str = Field(
+        ...,
+        description="The unique identifier of the block being placed.",
+    )
+    x: int = Field(
+        ...,
+        description="The X-coordinate for the bottom-left corner.",
+    )
+    y: int = Field(
+        ...,
+        description="The Y-coordinate for the bottom-left corner.",
+    )
+    orientation: Literal[0, 90, 180, 270] = Field(
+        ...,
+        description="Strictly limited block rotation (degrees).",
+    )
 
-    echoed_message: str = Field(default="", description="The echoed message")
-    message_length: int = Field(default=0, description="Length of the echoed message")
+
+class Observation(BaseModel):
+    die_width: int
+    die_height: int
+    unplaced_blocks: List[UnplacedBlock]
+    placed_blocks: Dict[str, PlacedBlock]
+    occupancy_map: List[List[int]]
